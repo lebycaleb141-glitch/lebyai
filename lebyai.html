@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEBY AI V10.3 — Smart Research Assistant</title>
+<style>
+  :root {
+    --bg: #080d18;
+    --sidebar: #0d1422;
+    --chat-bg: #0a101c;
+    --input-bg: #111b2b;
+    --card: #121d2e;
+    --text: #f5f7fb;
+    --muted: #8491a5;
+    --accent: #38bdf8;
+    --accent2: #22d3ee;
+    --green: #34d399;
+    --red: #fb7185;
+    --border: rgba(56, 189, 248, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .sidebar {
+    width: 240px;
+    background: var(--sidebar);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 18px 8px;
+  }
+
+  .logo-badge {
+    width: 42px;
+    height: 42px;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .subtitle {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    padding: 0 22px 18px;
+    line-height: 1.4;
+    letter-spacing: 0.6px;
+  }
+
+  .btn-new {
+    margin: 8px 15px 24px;
+    padding: 12px 16px;
+    background: var(--input-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-new:hover {
+    background: var(--card);
+    border-color: var(--accent);
+  }
+
+  .cap-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 1px;
+    padding: 0 22px 10px;
+  }
+
+  .cap-list {
+    list-style: none;
+    padding: 0 22px;
+    flex: 1;
+  }
+  .cap-list li {
+    padding: 8px 0;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .sidebar-footer {
+    padding: 18px 22px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .header h1 {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .status {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .status.error { color: var(--red); }
+  .status.busy { color: var(--accent); }
+
+  .chat-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    background: var(--chat-bg);
+    scroll-behavior: smooth;
+  }
+
+  .msg {
+    margin-bottom: 22px;
+    max-width: 860px;
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .msg-label {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.4px;
+  }
+  .msg-label.user { color: var(--accent); }
+  .msg-label.ai   { color: var(--accent2); }
+
+  .msg-body {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg-body h2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 14px 0 6px;
+  }
+  .msg-body ul {
+    margin: 4px 0 8px 18px;
+  }
+  .msg-body li {
+    margin-bottom: 4px;
+  }
+
+  .input-area {
+    padding: 12px 20px 8px;
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+
+  .input-card {
+    display: flex;
+    align-items: stretch;
+    background: var(--input-bg);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.15s;
+    min-height: 56px;
+  }
+  .input-card:focus-within {
+    border-color: var(--accent);
+  }
+
+  #input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 14.5px;
+    font-family: inherit;
+    padding: 14px 16px;
+    resize: none;
+    min-height: 56px;
+    max-height: 140px;
+    line-height: 1.5;
+    overflow-y: auto;
+  }
+  #input::placeholder { color: var(--muted); }
+
+  .btn-send {
+    flex-shrink: 0;
+    width: 56px;
+    min-height: 56px;
+    background: var(--accent);
+    border: none;
+    color: var(--bg);
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+  }
+  .btn-send:hover:not(:disabled) { background: var(--accent2); }
+  .btn-send:active:not(:disabled) { background: #0ea5e9; }
+  .btn-send:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 4px 10px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .btn-clear {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .btn-clear:hover { color: var(--text); background: var(--card); }
+
+  @media (max-width: 720px) {
+    .sidebar { display: none; }
+    .header { padding: 0 16px; }
+    .chat-wrap { padding: 16px; }
+    .input-area { padding: 10px 12px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo-row">
+    <div class="logo-badge">L</div>
+    <div class="logo-text">LEBY AI</div>
+  </div>
+  <div class="subtitle">SMART RESEARCH<br>ASSISTANT</div>
+
+  <button class="btn-new" onclick="newChat()">＋  New conversation</button>
+
+  <div class="cap-title">CAPABILITIES</div>
+  <ul class="cap-list">
+    <li>🧠  Deep answers</li>
+    <li>🌐  Web research</li>
+    <li>🔬  Evidence analysis</li>
+    <li>💻  Programming</li>
+    <li>💬  Conversation</li>
+  </ul>
+
+  <div class="sidebar-footer">
+    LEBY AI V10.3<br>
+    API-FREE ENGINE · WEB
+  </div>
+</aside>
+
+<div class="main">
+  <header class="header">
+    <h1>LEBY AI</h1>
+    <div class="status" id="status">● READY</div>
+  </header>
+
+  <div class="chat-wrap" id="chat"></div>
+
+  <div class="input-area">
+    <div class="input-card">
+      <textarea id="input" rows="1" placeholder="Ask anything…"
+        onkeydown="handleKey(event)"></textarea>
+      <button class="btn-send" id="sendBtn" onclick="send()">➤</button>
+    </div>
+    <div class="controls">
+      <span>Enter: Send &nbsp;•&nbsp; Shift+Enter: New line</span>
+      <button class="btn-clear" onclick="newChat()">Clear chat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   LEBY AI V10.3 — Browser Edition (fully fixed)
+   Uses Wikipedia API + DuckDuckGo Instant Answer (CORS-safe)
+   ============================================================ */
+
+const MEMORY_KEY = "leby_memory_v10";
+const MEMORY_LIMIT = 30;
+
+const STOPWORDS = new Set([
+  "the","a","an","and","or","but","is","are","was","were","be","to","of",
+  "in","on","for","with","as","by","at","from","that","this","it","its",
+  "their","they","them","these","those","what","who","when","where","why",
+  "how","which","can","could","would","should","do","does","did","about",
+  "into","than","me","you","your","i"
+]);
+
+function normalizeWords(text) {
+  return (text.toLowerCase().match(/[a-z0-9']+/g) || [])
+    .filter(w => !STOPWORDS.has(w) && w.length > 2);
+}
+
+function getKeywords(text) {
+  const counts = {};
+  for (const w of normalizeWords(text)) counts[w] = (counts[w] || 0) + 1;
+  return new Set(
+    Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 40)
+      .map(([w]) => w)
+  );
+}
+
+function similarity(a, b) {
+  const s1 = new Set(normalizeWords(a));
+  const s2 = new Set(normalizeWords(b));
+  if (!s1.size || !s2.size) return 0;
+  let inter = 0;
+  for (const w of s1) if (s2.has(w)) inter++;
+  return inter / Math.max(new Set([...s1, ...s2]).size, 1);
+}
+
+function sentenceSplit(text) {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  return cleaned
+    .split(/(?<=[.!?])\s+(?=[A-Z0-9])/)
+    .map(s => s.trim())
+    .filter(s => s.length >= 40 && s.length <= 700);
+}
+
+function getDomain(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+  } catch { return ""; }
+}
+
+const HIGH_VALUE = {
+  "reuters.com":10,"bbc.com":10,"bbc.co.uk":10,"apnews.com":10,
+  "who.int":10,"worldbank.org":10,"imf.org":10,"un.org":10,
+  "nasa.gov":10,"nih.gov":10,"ncbi.nlm.nih.gov":10,"nature.com":10,
+  "python.org":10,"docs.python.org":10,"microsoft.com":9,"apple.com":9,
+  "google.com":9,"wikipedia.org":9,"britannica.com":9,
+  "president.go.ke":10,"kenyalaw.org":10,"iebc.or.ke":10,
+  "duckduckgo.com":6
+};
+
+function sourceQuality(url) {
+  const d = getDomain(url);
+  if (d.endsWith(".gov")) return 10;
+  if (d.endsWith(".edu")) return 9;
+  for (const [k, v] of Object.entries(HIGH_VALUE)) {
+    if (d === k || d.endsWith("." + k)) return v;
+  }
+  return 4;
+}
+
+function classifyQuestion(q) {
+  q = q.toLowerCase().trim();
+
+  const greetings = [
+    /^(hi|hello|hey|yo|sup|hiya|heya)$/,
+    /^good morning$/, /^good afternoon$/, /^good evening$/, /^good night$/,
+    /^how are you$/, /^how are you doing$/, /^how have you been$/,
+    /^how's it going$/, /^how is it going$/, /^how's everything$/,
+    /^how is everything$/, /^how are things$/, /^how are things going$/,
+    /^what's up$/, /^what is up$/, /^is everything okay$/
+  ];
+  if (greetings.some(r => r.test(q))) return "greeting";
+
+  if (["thank you","thanks","thx","thank u","much appreciated","i appreciate it"]
+      .some(p => q.includes(p))) return "thanks";
+
+  if (["bye","goodbye","see you","see ya","see you later","talk to you later",
+       "catch you later","later","i'm leaving","im leaving","good night"]
+      .includes(q)) return "goodbye";
+
+  if (["who are you","what are you","your name","what's your name","whats your name",
+       "tell me your name","who am i talking to","what should i call you"]
+      .some(p => q.includes(p))) return "identity";
+
+  if (["what can you do","what do you do","how can you help","what can you help me with",
+       "what are your capabilities","what are you capable of","can you help me","can you help","help me"]
+      .some(p => q.includes(p))) return "capabilities";
+
+  if (["you are great","you're great","you are awesome","you're awesome",
+       "you are amazing","you're amazing","nice work","good job","well done",
+       "awesome work","great work"].some(p => q.includes(p))) return "compliment";
+
+  if (["compare","comparison","difference","differences","versus"," vs ","better than"]
+      .some(p => q.includes(p))) return "comparison";
+
+  if (["latest","today","current","recent","2026","2025","news","right now","this week","this month"]
+      .some(p => q.includes(p))) return "current";
+
+  if (["research","deep dive","deep research","comprehensive","in detail",
+       "detailed analysis","everything about","full analysis","complete analysis"]
+      .some(p => q.includes(p))) return "deep";
+
+  if (["python","javascript","c++","programming","code","coding","debug","error",
+       "function","class","algorithm","database","api","library","software",
+       "html","css","java","c language"].some(p => q.includes(p))) return "technical";
+
+  return "normal";
+}
+
+function shouldSearch(question) {
+  const cat = classifyQuestion(question);
+  if (["greeting","thanks","goodbye","identity","capabilities","compliment"].includes(cat))
+    return false;
+  if (["current","deep","comparison","technical"].includes(cat)) return true;
+
+  const q = question.toLowerCase().trim();
+
+  const indicators = [
+    "latest","today","current","recent","2026","2025","2024",
+    "price","cost","weather","news","richest","best","top ",
+    "ranking","statistics","who is","who was","who are",
+    "president","prime minister","ceo","election","elections",
+    "what happened","how much","how many","population","score","results",
+    "what is","what's","whats","what are","what was","what were",
+    "where is","where are","where was","when is","when was",
+    "which is","which are","how does","how do","how did",
+    "why is","why does","why do","explain","define","definition",
+    "longest","shortest","fastest","largest","smallest","tallest",
+    "highest","lowest","oldest","newest","biggest","most ",
+    "list of","history of","meaning of","example of","types of",
+    "difference between","vs ","versus","compared to"
+  ];
+  if (indicators.some(i => q.includes(i))) return true;
+  if (q.includes("?")) return true;
+  if (q.split(/\s+/).length >= 3) return true;
+
+  const knowledgePatterns = [
+    /\b(river|car|mountain|ocean|country|city|planet|star|animal|bird|fish|president|king|queen)\b/,
+    /\b(capital|currency|language|population|area|height|speed|record|company|phone)\b/,
+    /\bin the world\b/, /\bon earth\b/, /\bof all time\b/,
+    /\b(kenya|africa|america|europe|asia|china|india|japan|uk|usa)\b/
+  ];
+  if (knowledgePatterns.some(r => r.test(q))) return true;
+
+  return true;
+}
+
+function generateQueries(question) {
+  const q = question.trim();
+  const cat = classifyQuestion(question);
+  const queries = [q];
+
+  if (cat === "current") {
+    queries.push(q + " latest", q + " current", q + " 2026");
+  } else if (cat === "comparison") {
+    queries.push(q + " comparison", q + " differences");
+  } else if (cat === "technical") {
+    queries.push(q + " explained", q + " documentation");
+  } else if (cat === "deep") {
+    queries.push(q + " detailed", q + " facts", q + " overview");
+  } else {
+    queries.push(q + " facts", q + " explained");
+  }
+
+  const seen = new Set();
+  return queries.filter(x => {
+    const k = x.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).slice(0, 4);
+}
+
+function answerDepth(question) {
+  const cat = classifyQuestion(question);
+  const words = question.split(/\s+/).length;
+  if (cat === "deep" || cat === "comparison") return 5;
+  if (cat === "technical" || cat === "current") return 4;
+  if (words > 12) return 4;
+  if (words > 6) return 3;
+  return 2;
+}
+
+function localAnswer(question) {
+  const q = question.toLowerCase().trim();
+  const cat = classifyQuestion(question);
+
+  if (cat === "greeting") {
+    if (["how are you","how are you doing","how have you been","how's it going",
+         "how is it going","how's everything","how is everything","how are things",
+         "how are things going","is everything okay"].some(p => q.includes(p))) {
+      return "I'm doing great! 😄\n\nThanks for asking. I'm ready and fully operational.\n\nWhat can I help you with today?";
+    }
+    if (["what's up","whats up","what is up"].some(p => q.includes(p))) {
+      return "Not much — I'm here and ready to help. 😄\n\nWhat are we working on today?";
+    }
+    if (q === "good night") {
+      return "Good night! 🌙\n\nTake care and have a great night. 👋";
+    }
+    return "Hey! 👋\n\nNice to hear from you. I'm ready to help.\n\nWhat are we working on today?";
+  }
+
+  if (cat === "thanks") {
+    return "You're welcome! 😄\n\nI'm glad I could help.\n\nLet's keep building.";
+  }
+
+  if (cat === "goodbye") {
+    return "See you later! 👋\n\nTake care and come back anytime.";
+  }
+
+  if (cat === "identity") {
+    return "I'm LEBY AI V10.3. 🤖\n\nI'm your API-free research assistant running entirely in the browser. I can handle normal conversation, programming, technical questions and automatic web research using Wikipedia and DuckDuckGo.\n\nWhen a question needs current or specialized information, I search and analyze sources for you.";
+  }
+
+  if (cat === "capabilities") {
+    return "I can help with quite a few things. 😎\n\n🧠 General questions and explanations\n🌐 Automatic web research (Wikipedia + DuckDuckGo)\n🔬 Evidence and source analysis\n💻 Programming and technical problems\n📚 Detailed explanations and comparisons\n💬 Normal conversation\n🧩 Problem solving\n\nAsk me what you want to work on.";
+  }
+
+  if (cat === "compliment") {
+    return "Thanks! 😄🔥\n\nI appreciate that.\n\nWhat should we work on next?";
+  }
+
+  if (q === "what is python" || q === "what is python?") {
+    return "Python is a high-level, general-purpose programming language designed around readability and developer productivity.\n\nIt is used for automation, web development, data processing, scientific computing, artificial intelligence, scripting and desktop applications.";
+  }
+
+  return null;
+}
+
+function fallbackAnswer() {
+  return "I don't have enough local information to answer that reliably.\n\nTry asking with more detail, or include words like 'what is', 'who is', 'latest', or 'research'.";
+}
+
+class Memory {
+  constructor() {
+    this.data = [];
+    this.load();
+  }
+  load() {
+    try {
+      const raw = localStorage.getItem(MEMORY_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (Array.isArray(d)) this.data = d;
+      }
+    } catch { this.data = []; }
+  }
+  save() {
+    try {
+      localStorage.setItem(MEMORY_KEY, JSON.stringify(this.data.slice(-MEMORY_LIMIT)));
+    } catch {}
+  }
+  add(user, assistant) {
+    this.data.push({ time: Date.now(), user, assistant });
+    this.data = this.data.slice(-MEMORY_LIMIT);
+    this.save();
+  }
+  clear() {
+    this.data = [];
+    this.save();
+  }
+}
+
+class WebEngine {
+  constructor(statusCb) {
+    this.status = statusCb || (() => {});
+  }
+
+  async fetchJSON(url, timeoutMs) {
+    timeoutMs = timeoutMs || 10000;
+    const controller = new AbortController();
+    const timer = setTimeout(function() { controller.abort(); }, timeoutMs);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      clearTimeout(timer);
+      return null;
+    }
+  }
+
+  async searchDDGInstant(query) {
+    const url = "https://api.duckduckgo.com/?q=" + encodeURIComponent(query) + "&format=json&no_html=1&skip_disambig=1";
+    return await this.fetchJSON(url);
+  }
+
+  async searchWikipedia(query) {
+    const url =
+      "https://en.wikipedia.org/w/api.php?action=query&list=search" +
+      "&srsearch=" + encodeURIComponent(query) + "&srlimit=5&format=json&origin=*";
+    const data = await this.fetchJSON(url);
+    if (!data || !data.query || !data.query.search) return [];
+    return data.query.search.map(function(item) {
+      return {
+        title: item.title,
+        snippet: (item.snippet || "").replace(/<[^>]+>/g, ""),
+        pageid: item.pageid
+      };
+    });
+  }
+
+  async getWikipediaExtract(title) {
+    const url =
+      "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1" +
+      "&titles=" + encodeURIComponent(title) + "&format=json&origin=*&exchars=5000";
+    const data = await this.fetchJSON(url);
+    if (!data || !data.query || !data.query.pages) return null;
+    const pages = Object.values(data.query.pages);
+    if (!pages.length || pages[0].missing !== undefined) return null;
+    const page = pages[0];
+    if (!page.extract || page.extract.length < 60) return null;
+    return {
+      url: "https://en.wikipedia.org/wiki/" + encodeURIComponent(page.title.replace(/ /g, "_")),
+      title: page.title,
+      text: page.extract
+    };
+  }
+
+  async getWikipediaSummary(title) {
+    const url = "https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title);
+    const data = await this.fetchJSON(url);
+    if (!data || !data.extract) return null;
+    var pageUrl = "https://en.wikipedia.org/wiki/" + encodeURIComponent(title);
+    if (data.content_urls && data.content_urls.desktop && data.content_urls.desktop.page) {
+      pageUrl = data.content_urls.desktop.page;
+    }
+    return {
+      url: pageUrl,
+      title: data.title || title,
+      text: data.extract
+    };
+  }
+
+  async research(question, queries) {
+    const pages = [];
+    const facts = [];
+
+    this.status("🔎 DuckDuckGo…");
+    try {
+      const instant = await this.searchDDGInstant(question);
+      if (instant) {
+        if (instant.Answer) {
+          facts.push({
+            sentence: String(instant.Answer),
+            url: instant.AbstractURL || "https://duckduckgo.com",
+            title: instant.Heading || "DuckDuckGo",
+            domain: "duckduckgo.com",
+            score: 10
+          });
+        }
+        if (instant.Abstract && instant.Abstract.length > 40) {
+          facts.push({
+            sentence: instant.Abstract,
+            url: instant.AbstractURL || "https://duckduckgo.com",
+            title: instant.Heading || "DuckDuckGo",
+            domain: "duckduckgo.com",
+            score: 9
+          });
+        }
+        if (instant.Definition) {
+          facts.push({
+            sentence: instant.Definition,
+            url: instant.AbstractURL || "https://duckduckgo.com",
+            title: instant.Heading || "Definition",
+            domain: "duckduckgo.com",
+            score: 8
+          });
+        }
+        (instant.RelatedTopics || []).slice(0, 8).forEach(function(t) {
+          if (t.Text && t.Text.length > 40) {
+            facts.push({
+              sentence: t.Text,
+              url: t.FirstURL || "https://duckduckgo.com",
+              title: t.Text.slice(0, 50),
+              domain: getDomain(t.FirstURL || "") || "duckduckgo.com",
+              score: 5
+            });
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("DDG error", e);
+    }
+
+    this.status("📖 Wikipedia…");
+    try {
+      const wikiHits = await this.searchWikipedia(question);
+      for (var i = 0; i < Math.min(wikiHits.length, 4); i++) {
+        var hit = wikiHits[i];
+        this.status("📖 " + hit.title);
+        var page = await this.getWikipediaExtract(hit.title);
+        if (!page) page = await this.getWikipediaSummary(hit.title);
+        if (page) {
+          pages.push(page);
+        } else if (hit.snippet && hit.snippet.length > 30) {
+          facts.push({
+            sentence: hit.snippet,
+            url: "https://en.wikipedia.org/wiki/" + encodeURIComponent(hit.title.replace(/ /g, "_")),
+            title: hit.title,
+            domain: "wikipedia.org",
+            score: 6
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Wikipedia error", e);
+    }
+
+    if (pages.length === 0 && queries.length > 1) {
+      this.status("📖 Trying alternate query…");
+      try {
+        const extra = await this.searchWikipedia(queries[1]);
+        for (var j = 0; j < Math.min(extra.length, 2); j++) {
+          var h = extra[j];
+          var p = await this.getWikipediaExtract(h.title);
+          if (!p) p = await this.getWikipediaSummary(h.title);
+          if (p) pages.push(p);
+        }
+      } catch (e) {}
+    }
+
+    return { pages: pages, facts: facts };
+  }
+}
+
+function collectEvidence(question, pages) {
+  const keywords = getKeywords(question);
+  const qWords = new Set(normalizeWords(question));
+  const evidence = [];
+
+  for (var pi = 0; pi < pages.length; pi++) {
+    var page = pages[pi];
+    var sentences = sentenceSplit(page.text);
+    for (var si = 0; si < sentences.length; si++) {
+      var sentence = sentences[si];
+      var words = new Set(normalizeWords(sentence));
+      var overlap = 0;
+      words.forEach(function(w) { if (keywords.has(w)) overlap++; });
+      if (overlap === 0) continue;
+
+      var relevance = overlap / Math.max(keywords.size, 1);
+      var quality = sourceQuality(page.url);
+      var direct = 0;
+      var inter = 0;
+      words.forEach(function(w) { if (qWords.has(w)) inter++; });
+      if (inter >= 2) direct = 0.15;
+
+      var detail = 0;
+      if (sentence.length > 100) detail += 0.05;
+      if (/\b\d{4}\b/.test(sentence)) detail += 0.05;
+
+      var score = relevance * 5 + quality * 0.08 + direct + detail;
+      evidence.push({
+        sentence: sentence,
+        url: page.url,
+        title: page.title,
+        domain: getDomain(page.url),
+        score: score
+      });
+    }
+  }
+  evidence.sort(function(a, b) { return b.score - a.score; });
+  return evidence;
+}
+
+function deduplicateEvidence(evidence, limit) {
+  limit = limit || 40;
+  const selected = [];
+  for (var i = 0; i < evidence.length; i++) {
+    var item = evidence[i];
+    var dup = false;
+    for (var j = 0; j < selected.length; j++) {
+      if (similarity(item.sentence, selected[j].sentence) >= 0.70) { dup = true; break; }
+    }
+    if (dup) continue;
+    selected.push(item);
+    if (selected.length >= limit) break;
+  }
+  return selected;
+}
+
+function crossCheck(evidence) {
+  for (var i = 0; i < evidence.length; i++) {
+    var item = evidence[i];
+    var support = 1;
+    for (var j = 0; j < evidence.length; j++) {
+      if (i === j) continue;
+      if (item.domain === evidence[j].domain) continue;
+      if (similarity(item.sentence, evidence[j].sentence) >= 0.42) support++;
+    }
+    item.support = support;
+  }
+  evidence.sort(function(a, b) {
+    return (b.support || 1) - (a.support || 1) || b.score - a.score;
+  });
+  return evidence;
+}
+
+function buildAnswer(question, evidence, pages) {
+  if (!evidence.length) {
+    return "I found some sources, but I couldn't extract enough relevant sentences to build a reliable answer. Try rephrasing the question.";
+  }
+
+  const depth = answerDepth(question);
+  evidence = crossCheck(evidence);
+
+  var limit = 9;
+  if (depth >= 5) limit = 22;
+  else if (depth === 4) limit = 16;
+  else if (depth === 3) limit = 12;
+
+  const selected = evidence.slice(0, limit);
+  const lines = [];
+  const cat = classifyQuestion(question);
+
+  if (cat === "comparison") {
+    lines.push("I compared information from multiple sources.");
+  } else if (cat === "current" || cat === "deep") {
+    lines.push("I researched multiple sources and cross-checked the available information.");
+  } else {
+    lines.push("Here's what the available evidence shows.");
+  }
+  lines.push("");
+
+  lines.push("## Main answer");
+  for (var i = 0; i < Math.min(selected.length, 8); i++) {
+    var s = selected[i].sentence.trim();
+    if (!/[.!?]$/.test(s)) s += ".";
+    lines.push("• " + s);
+  }
+
+  if (depth >= 3 && selected.length > 8) {
+    lines.push("");
+    lines.push("## Deeper explanation");
+    for (var i = 8; i < Math.min(selected.length, 16); i++) {
+      var s = selected[i].sentence.trim();
+      if (!/[.!?]$/.test(s)) s += ".";
+      lines.push("• " + s);
+    }
+  }
+
+  if (depth >= 4 && selected.length > 16) {
+    lines.push("");
+    lines.push("## Additional context");
+    for (var i = 16; i < Math.min(selected.length, 22); i++) {
+      var s = selected[i].sentence.trim();
+      if (!/[.!?]$/.test(s)) s += ".";
+      lines.push("• " + s);
+    }
+  }
+
+  const strong = evidence.filter(function(e) { return (e.support || 1) >= 2; });
+  const domains = new Set(evidence.map(function(e) { return e.domain; }).filter(Boolean));
+
+  lines.push("");
+  lines.push("## Confidence & evidence");
+  if (strong.length) {
+    lines.push("The strongest findings had support from multiple sources. I analyzed " + domains.size + " distinct domain(s).");
+  } else {
+    lines.push("Information was extracted successfully. Cross-source confirmation was limited.");
+  }
+
+  lines.push("");
+  lines.push("## Research details");
+  lines.push("Pages analyzed: " + pages.length);
+  lines.push("Evidence items: " + evidence.length);
+  lines.push("Distinct domains: " + domains.size);
+
+  const sourceUrls = [];
+  const seenUrl = new Set();
+  for (var i = 0; i < evidence.length; i++) {
+    if (evidence[i].url && !seenUrl.has(evidence[i].url)) {
+      seenUrl.add(evidence[i].url);
+      sourceUrls.push(evidence[i].url);
+    }
+  }
+  if (sourceUrls.length) {
+    lines.push("");
+    lines.push("## Sources");
+    for (var i = 0; i < Math.min(sourceUrls.length, 6); i++) {
+      lines.push("• " + sourceUrls[i]);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+class LEBYBrain {
+  constructor(statusCb) {
+    this.memory = new Memory();
+    this.web = new WebEngine(statusCb);
+    this.status = statusCb || function() {};
+  }
+
+  async answer(question) {
+    question = question.trim();
+    if (!question) return "Please enter a question.";
+
+    const local = localAnswer(question);
+    if (local) {
+      this.memory.add(question, local);
+      return local;
+    }
+
+    if (!shouldSearch(question)) {
+      const ans = fallbackAnswer();
+      this.memory.add(question, ans);
+      return ans;
+    }
+
+    this.status("🌐 RESEARCH MODE");
+    const queries = generateQueries(question);
+
+    var pages = [];
+    var facts = [];
+
+    try {
+      const result = await this.web.research(question, queries);
+      pages = result.pages || [];
+      facts = result.facts || [];
+    } catch (err) {
+      console.error("Research error:", err);
+    }
+
+    this.status("🔬 Extracting information");
+    var evidence = collectEvidence(question, pages);
+
+    for (var i = 0; i < facts.length; i++) {
+      var f = facts[i];
+      evidence.push({
+        sentence: f.sentence,
+        url: f.url,
+        title: f.title,
+        domain: f.domain || getDomain(f.url),
+        score: f.score || 5
+      });
+    }
+
+    evidence = deduplicateEvidence(evidence);
+    evidence = crossCheck(evidence);
+
+    if (!evidence.length) {
+      const ans =
+        "I couldn't gather enough information for that question from available sources.\n\n" +
+        "Try rephrasing (for example: \"who is the president of Kenya\" or \"what is the longest river in the world\").";
+      this.memory.add(question, ans);
+      this.status("● READY");
+      return ans;
+    }
+
+    this.status("✍ Building answer");
+    const answer = buildAnswer(question, evidence, pages);
+    this.memory.add(question, answer);
+    this.status("● READY");
+    return answer;
+  }
+}
+
+const chatEl = document.getElementById("chat");
+const inputEl = document.getElementById("input");
+const statusEl = document.getElementById("status");
+const sendBtn = document.getElementById("sendBtn");
+
+function setStatus(text) {
+  statusEl.textContent = text;
+  statusEl.className = "status";
+  if (text.indexOf("ERROR") !== -1 || text.indexOf("couldn't") !== -1) statusEl.classList.add("error");
+  else if (text.indexOf("READY") === -1) statusEl.classList.add("busy");
+}
+
+const brain = new LEBYBrain(setStatus);
+
+function renderMarkdownLite(text) {
+  var escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return escaped
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^• (.+)$/gm, "<li>$1</li>")
+    .replace(/(?:<li>.*<\/li>\n?)+/g, function(m) { return "<ul>" + m + "</ul>"; });
+}
+
+function addMessage(sender, message, isUser) {
+  var div = document.createElement("div");
+  div.className = "msg";
+  var label = document.createElement("div");
+  label.className = "msg-label " + (isUser ? "user" : "ai");
+  label.textContent = isUser ? "YOU" : "LEBY AI";
+  var body = document.createElement("div");
+  body.className = "msg-body";
+  if (isUser) {
+    body.textContent = message;
+  } else {
+    body.innerHTML = renderMarkdownLite(message);
+  }
+  div.appendChild(label);
+  div.appendChild(body);
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function showWelcome() {
+  addMessage("LEBY AI",
+    "Welcome back. 👋\n\nI'm LEBY AI V10.3. I research using Wikipedia and DuckDuckGo right in your browser.\n\nTry questions like:\n• who is the president of Kenya\n• longest river in the world\n• what is the fastest car",
+    false
+  );
+}
+
+function newChat() {
+  chatEl.innerHTML = "";
+  brain.memory.clear();
+  showWelcome();
+  setStatus("● READY");
+}
+
+function handleKey(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    send();
+  }
+}
+
+async function send() {
+  var question = inputEl.value.trim();
+  if (!question || sendBtn.disabled) return;
+
+  inputEl.value = "";
+  inputEl.style.height = "";
+  addMessage("YOU", question, true);
+  setStatus("● THINKING...");
+  sendBtn.disabled = true;
+
+  try {
+    var answer = await brain.answer(question);
+    addMessage("LEBY AI", answer, false);
+    setStatus("● READY");
+  } catch (err) {
+    console.error(err);
+    addMessage("LEBY AI", "LEBY AI encountered an error.\n\n" + err.name + ": " + err.message, false);
+    setStatus("● ERROR");
+  } finally {
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+
+function autoResize() {
+  inputEl.style.height = "auto";
+  var h = Math.min(Math.max(inputEl.scrollHeight, 56), 140);
+  inputEl.style.height = h + "px";
+}
+
+inputEl.addEventListener("input", autoResize);
+
+showWelcome();
+inputEl.focus();
+</script>
+</body>
+</html>
